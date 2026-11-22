@@ -6,8 +6,11 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.devsuperior.dsmeta.dto.SaleReportDTO;
+import com.devsuperior.dsmeta.dto.SaleSummaryDTO;
+import com.devsuperior.dsmeta.repositories.projection.SummaryProjection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -77,6 +80,45 @@ public class SaleService {
 		Page<Sale> result = repository.findByDate(minDate, maxDate, name, pageable);
 
 		return result.map(sale -> new SaleReportDTO(sale));
+
+	}
+
+
+
+
+	public List<SaleSummaryDTO> getSummary(String dateOne, String dateTwo) {
+		if(dateOne == null && dateTwo == null) {
+			LocalDate maxDate = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
+			LocalDate minDate = maxDate.minusYears(1L);
+
+			List<SummaryProjection> sales = repository.findByDate(minDate, maxDate);
+			List<SaleSummaryDTO> result = sales.stream().map(sale -> new SaleSummaryDTO(sale)).collect(Collectors.toList());
+			return sales.stream().map(sale -> new SaleSummaryDTO(sale)).toList();
+		}
+
+		if(dateOne == null) {
+			LocalDate maxDate = LocalDate.parse(dateTwo);
+			LocalDate minDate = maxDate.minusYears(1L);
+
+			List<SummaryProjection> sales = repository.findByDate(minDate, maxDate);
+			List<SaleSummaryDTO> result = sales.stream().map(sale -> new SaleSummaryDTO(sale)).collect(Collectors.toList());
+			return sales.stream().map(sale -> new SaleSummaryDTO(sale)).toList();
+		}
+		if(dateTwo == null) {
+			LocalDate maxDate = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
+			LocalDate minDate = LocalDate.parse(dateOne);
+
+			List<SummaryProjection> sales = repository.findByDate(minDate, maxDate);
+			List<SaleSummaryDTO> result = sales.stream().map(sale -> new SaleSummaryDTO(sale)).collect(Collectors.toList());
+			return sales.stream().map(sale -> new SaleSummaryDTO(sale)).toList();
+		}
+
+		LocalDate maxDate = LocalDate.parse(dateTwo);
+		LocalDate minDate = LocalDate.parse(dateOne);
+
+		List<SummaryProjection> sales = repository.findByDate(minDate, maxDate);
+		List<SaleSummaryDTO> result = sales.stream().map(sale -> new SaleSummaryDTO(sale)).collect(Collectors.toList());
+		return sales.stream().map(sale -> new SaleSummaryDTO(sale)).toList();
 
 	}
 }
